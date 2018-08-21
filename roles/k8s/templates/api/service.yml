@@ -1,0 +1,55 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: "{{ project }}-{{ project_type }}"
+  namespace: "{{ namespace }}"
+  labels:
+    app: "{{ project }}-{{ project_type }}"
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: "{{ project }}-{{ project_type }}"
+    spec:
+      containers:
+        - name: "{{ namespace }}-{{ project }}-{{ project_type }}"
+          env:
+          - name: SELF_DB_HOST
+            value: "{{ project }}-postgresql"
+          - name: SELF_DB_NAME
+            value: "{{ project }}"
+          - name: SELF_DB_USER
+            value: "iflyos"
+          - name: SELF_DB_PASS
+            valueFrom:
+              secretKeyRef:
+                name: "{{ project }}"
+                key: postgresql-password
+          - name: SELF_REDIS_HOST
+            value: "{{ project }}-redis-master"
+          - name: SELF_REDIS_PASS
+            valueFrom:
+              secretKeyRef:
+                name: "{{ project }}"
+                key: redis-password
+          - name: SELF_REDIS_URI
+            value: "redis://:$(SELF_REDIS_PASS)@$(SELF_REDIS_HOST)"
+          image: "{{ registry }}:{{ version }}"
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 80
+          resources:
+            requests:
+              cpu: 100m
+              memory: 512Mi
+            limits:
+              cpu: 200m
+              memory: 1024Mi
+          volumeMounts:
+          - name: project-storage
+            mountPath: /mnt
+      volumes:
+      - name: project-storage
+        persistentVolumeClaim:
+          claimName: "{{ project }}-{{ project_type }}"

@@ -1,0 +1,5 @@
+---
+- hosts: clusterB
+  gather_facts: no 
+  roles:
+    - k8s

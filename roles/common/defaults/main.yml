@@ -1,0 +1,11 @@
+demo: &demo
+  key: ""
+sine: &sine
+  key: "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDfQIeTPyHty6B7lYoh4eGME/Hzc2kRy/4CZhsrybt4WP5DFf5slsrcxfJ5XDUe67E++ZrZcKxuqUH2C8TLD3prGVYzl48HIZKpbkJHVCkIHIWKuhihUs9Q3vN9SSxeBCfPH+s+jvK7kRbl8IL9miKxy95PDeUh2rbjTic7nv6VwpIErDfcRTs/pzWtpR0UcZf0qXxxzaheL4bwiJGEh0VC5W5/Ce2kEsv0mC7X4fbKYSgKIrDidShnf7j3n4MrvTkPjQzhRM0Dn4CP0c+6Ep1g1PG5GyXPD0qdJZLPRf7QdIJkVKLCZg7xWfPY/j3m6pOhjyiMSND1sWxy1Dqbox9p sine"
+
+sysadmin:
+  - *sine
+
+developer:
+
+absent:

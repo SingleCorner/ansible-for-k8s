@@ -1,0 +1,68 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: "{{ item[0] }}-redis-slave"
+  namespace: "{{ item[1] }}"
+  labels:
+    app: "{{ item[0] }}-redis-slave"
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: "{{ item[0] }}-redis-slave"
+    spec:      
+      securityContext:
+        fsGroup: 1001
+        runAsUser: 1001
+      serviceAccountName: "default"
+      containers:
+      - name: "{{ item[1] }}-{{ item[0] }}-redis-slave"
+        image: docker.io/bitnami/redis:4.0.10-debian-9
+        imagePullPolicy: "IfNotPresent"
+        env:
+        - name: REDIS_REPLICATION_MODE
+          value: slave
+        - name: REDIS_MASTER_HOST
+          value: "{{ item[0] }}-redis-master"
+        - name: REDIS_PORT
+          value: "6379"
+        - name: REDIS_MASTER_PORT_NUMBER
+          value: "6379"
+        - name: REDIS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: "{{ item[0] }}"
+              key: redis-password
+        - name: REDIS_MASTER_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: "{{ item[0] }}"
+              key: redis-password
+        - name: REDIS_DISABLE_COMMANDS
+          value: FLUSHDB,FLUSHALL
+        ports:
+        - name: redis
+          containerPort: 6379        
+        livenessProbe:
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          successThreshold: 1
+          failureThreshold: 5
+          exec:
+            command:
+            - redis-cli
+            - ping        
+        readinessProbe:
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          timeoutSeconds: 1
+          successThreshold: 1
+          failureThreshold: 5
+          exec:
+            command:
+            - redis-cli
+            - ping
+        resources:
+          null

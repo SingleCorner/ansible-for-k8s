@@ -1,0 +1,49 @@
+---
+# - name: users | create admin group
+#   group: name=public state=present
+#   tags:
+#     - initialize
+#     - initialize_users
+
+- name: users | ensure /root/.ssh exists
+  shell: mkdir -p /root/.ssh && chmod 0700 /root/.ssh
+  tags:
+    - initialize
+    - initialize_users
+
+- name: users | public-key | sysadmin
+  lineinfile: dest=/root/.ssh/authorized_keys_new 
+              line={{ item.key }}
+              create=yes 
+              state=present
+  with_items: "{{ sysadmin }}"
+  tags:
+    - initialize
+    - initialize_users
+
+- name: users | public-key | apply
+  copy:
+    remote_src: yes
+    src: /root/.ssh/authorized_keys_new
+    dest: /root/.ssh/authorized_keys
+  tags:
+    - initialize
+    - initialize_users
+
+- name: users | public-key | developer
+  lineinfile: dest=/root/.ssh/authorized_keys
+              line={{ item.key }}
+              create=yes 
+              state=present
+  with_items: "{{ developer }}"
+  tags:
+    - users_present
+
+- name: users | public-key | absent
+  lineinfile: dest=/root/.ssh/authorized_keys
+              line={{ item.key }}
+              create=yes 
+              state=absent
+  with_items: "{{ absent }}"
+  tags:
+    - users_absent

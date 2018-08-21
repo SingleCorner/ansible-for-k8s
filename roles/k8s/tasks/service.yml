@@ -1,0 +1,66 @@
+---
+- name: K8S | service | postgresql | create
+  k8s:
+    kubeconfig: "{{ kubeconfig }}"
+    state: present
+    definition: "{{ lookup('template', 'service-postgresql.yml') | from_yaml }}"
+  with_nested:
+    - "{{ project_postgresql_list }}"
+    - "{{ project_environment_list }}"
+  tags:
+    - initialize_k8s
+    - initialize_k8s_service
+    - initialize_k8s_service_postgresql
+
+- name: K8S | service | redis | create
+  k8s:
+    kubeconfig: "{{ kubeconfig }}"
+    state: present
+    definition: "{{ lookup('template', 'service-redis.yml') | from_yaml }}"
+  with_nested:
+    - "{{ project_redis_list }}"
+    - "{{ project_environment_list }}"
+    - ["master", "slave"]
+  tags:
+    - initialize_k8s
+    - initialize_k8s_service
+    - initialize_k8s_service_redis
+
+- name: K8S | service | rabbitmq | create
+  k8s:
+    kubeconfig: "{{ kubeconfig }}"
+    state: present
+    definition: "{{ lookup('template', 'service-rabbitmq.yml') | from_yaml }}"
+  with_nested:
+    - "{{ project_rabbitmq_list }}"
+    - "{{ project_environment_list }}"
+  tags:
+    - initialize_k8s
+    - initialize_k8s_service
+    - initialize_k8s_service_rabbitmq
+
+- name: K8S | service | api | create
+  k8s:
+    kubeconfig: "{{ kubeconfig }}"
+    state: present
+    definition: "{{ lookup('template', 'service-api.yml') | from_yaml }}"
+  with_nested:
+    - "{{ project_api_list }}"
+    - "{{ project_environment_list }}"
+  tags:
+    - initialize_k8s
+    - initialize_k8s_service
+    - initialize_k8s_service_api
+
+- name: K8S | service | web | create
+  k8s:
+    kubeconfig: "{{ kubeconfig }}"
+    state: present
+    definition: "{{ lookup('template', 'service-web.yml') | from_yaml }}"
+  with_nested:
+    - "{{ project_web_list }}"
+    - "{{ project_environment_list }}"
+  tags:
+    - initialize_k8s
+    - initialize_k8s_service
+    - initialize_k8s_service_web

@@ -1,0 +1,13 @@
+---
+- name: K8S | configmap | rabbitmq
+  k8s:
+    kubeconfig: "{{ kubeconfig }}"
+    state: present
+    definition: "{{ lookup('template', 'configmap-rabbitmq.yml') | from_yaml }}"
+  with_nested:
+    - "{{ project_rabbitmq_list }}"
+    - "{{ project_sharedb_list }}"
+  tags:
+    - initialize_k8s
+    - initialize_k8s_configmap
+    - initialize_k8s_configmap_rabbitmq

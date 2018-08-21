@@ -1,0 +1,74 @@
+---
+- name: Docker | Prerequisites | install
+  apt: 
+    name: "{{ item }}"
+    state: latest
+    update_cache: yes
+  with_items:
+    - apt-transport-https
+    - ca-certificates
+    - curl
+    - software-properties-common
+  tags:
+    - initialize
+    - initialize_docker
+    - initialize_docker_install
+
+- name: Docker | Prerequisites | GPG key | ubuntu | Aliyun
+  shell: curl -fsSL http://mirrors.aliyun.com/docker-ce/linux/ubuntu/gpg | apt-key add -
+  tags:
+    - initialize
+    - initialize_docker
+    - initialize_docker_install
+
+- name: Docker | Prerequisites | repo add | ubuntu | Aliyun
+  shell: add-apt-repository "deb [arch=amd64] http://mirrors.aliyun.com/docker-ce/linux/ubuntu $(lsb_release -cs) stable"
+  tags:
+    - initialize
+    - initialize_docker
+    - initialize_docker_install
+
+- name: Docker | CE | install | ubuntu
+  apt:
+    name: docker-ce=17.06.2~ce-0~ubuntu
+    state: present
+  tags:
+    - initialize
+    - initialize_docker
+    - initialize_docker_install
+
+- name: Docker | CE | registry-mirror
+  copy:
+    src: docker-registry.aliyun
+    dest: /etc/docker/daemon.json
+  tags:
+    - initialize
+    - initialize_docker
+    - initialize_docker_install
+    - initialize_docker_registry
+
+- name: Docker | CE | restart
+  service: name=docker state=restarted
+  tags:
+    - initialize
+    - initialize_docker
+    - initialize_docker_install
+    - initialize_docker_restart
+
+- name: K8S | Install agent
+  docker_container:
+    name: once_start
+    image: rancher/agent:v1.2.10
+    state: started
+    auto_remove: yes  
+    privileged: yes
+    env:
+       CATTLE_AGENT_IP: "{{ ansible_ssh_host }}"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /var/lib/rancher:/var/lib/rancher
+    command: "{{ rancher_secret }}"
+  when: role is defined and role == "kubernetes"
+  tags:
+    - initialize
+    - initialize_k8s

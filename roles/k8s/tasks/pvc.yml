@@ -1,0 +1,205 @@
+---
+- name: K8S | pvc | api | create
+  k8s:
+    kubeconfig: "{{ kubeconfig }}"
+    state: present
+    definition:
+      api_version: v1
+      kind: PersistentVolumeClaim
+      metadata:
+        name: "{{ item[0] }}-api"
+        namespace: "{{ item[1] }}"
+        annotations:
+          volume.beta.kubernetes.io/storage-class: "managed-nfs-storage"
+      spec:
+        accessModes:
+          - ReadWriteMany
+        resources:
+          requests:
+            storage: 20Gi
+  with_nested: 
+    - "{{ project_api_list }}"
+    - "{{ project_environment_list }}"
+  tags:
+    - initialize_k8s
+    - initialize_k8s_pvc
+    - initialize_k8s_pvc_api
+
+- name: K8S | pvc | namespace | create
+  k8s:
+    kubeconfig: "{{ kubeconfig }}"
+    state: present
+    definition:
+      api_version: v1
+      kind: PersistentVolumeClaim
+      metadata:
+        name: "{{ item }}-api"
+        namespace: "{{ namespace }}"
+        annotations:
+          volume.beta.kubernetes.io/storage-class: "managed-nfs-storage"
+      spec:
+        accessModes:
+          - ReadWriteMany
+        resources:
+          requests:
+            storage: 20Gi
+  with_items: 
+    - "{{ project_api_list }}"
+  tags:
+    - k8s_namespace
+    - k8s_namespace_pvc
+
+- name: K8S | pvc | project | create
+  k8s:
+    kubeconfig: "{{ kubeconfig }}"
+    state: present
+    definition:
+      api_version: v1
+      kind: PersistentVolumeClaim
+      metadata:
+        name: "{{ project }}-api"
+        namespace: "{{ item }}"
+        annotations:
+          volume.beta.kubernetes.io/storage-class: "managed-nfs-storage"
+      spec:
+        accessModes:
+          - ReadWriteMany
+        resources:
+          requests:
+            storage: 20Gi
+  with_items: 
+    - "{{ project_environment_list }}"
+  tags:
+    - k8s_project
+    - k8s_project_pvc
+    - k8s_project_pvc_api
+
+- name: K8S | pvc | postgresql | create
+  k8s:
+    kubeconfig: "{{ kubeconfig }}"
+    state: present
+    definition:
+      api_version: v1
+      kind: PersistentVolumeClaim
+      metadata:
+        name: "{{ item[0] }}-postgresql"
+        namespace: "{{ item[1] }}"
+        annotations:
+          volume.beta.kubernetes.io/storage-class: "managed-nfs-storage"
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 20Gi
+  with_nested: 
+    - "{{ project_postgresql_list }}"
+    - "{{ project_environment_list }}"
+  tags:
+    - initialize_k8s
+    - initialize_k8s_pvc
+    - initialize_k8s_pvc_postgresql
+
+- name: K8S | pvc | postgresql | project | create
+  k8s:
+    kubeconfig: "{{ kubeconfig }}"
+    state: present
+    definition:
+      api_version: v1
+      kind: PersistentVolumeClaim
+      metadata:
+        name: "{{ project }}-postgresql"
+        namespace: "{{ item }}"
+        annotations:
+          volume.beta.kubernetes.io/storage-class: "managed-nfs-storage"
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 20Gi
+  with_items: 
+    - "{{ project_environment_list }}"
+  when: db == "true"
+  tags:
+    - k8s_project
+    - k8s_project_pvc
+    - k8s_project_pvc_postgresql
+
+- name: K8S | pvc | redis | create
+  k8s:
+    kubeconfig: "{{ kubeconfig }}"
+    state: present
+    definition:
+      api_version: v1
+      kind: PersistentVolumeClaim
+      metadata:
+        name: "{{ item[0] }}-redis"
+        namespace: "{{ item[1] }}"
+        annotations:
+          volume.beta.kubernetes.io/storage-class: "managed-nfs-storage"
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 20Gi
+  with_nested: 
+    - "{{ project_redis_list }}"
+    - "{{ project_environment_list }}"
+  tags:
+    - initialize_k8s
+    - initialize_k8s_pvc
+    - initialize_k8s_pvc_redis
+
+- name: K8S | pvc | redis | project | create
+  k8s:
+    kubeconfig: "{{ kubeconfig }}"
+    state: present
+    definition:
+      api_version: v1
+      kind: PersistentVolumeClaim
+      metadata:
+        name: "{{ project }}-redis"
+        namespace: "{{ item }}"
+        annotations:
+          volume.beta.kubernetes.io/storage-class: "managed-nfs-storage"
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 20Gi
+  with_items: 
+    - "{{ project_environment_list }}"
+  when: db == "true"
+  tags:
+    - k8s_project
+    - k8s_project_pvc
+    - k8s_project_pvc_redis
+
+- name: K8S | pvc | rabbitmq | create
+  k8s:
+    kubeconfig: "{{ kubeconfig }}"
+    state: present
+    definition:
+      api_version: v1
+      kind: PersistentVolumeClaim
+      metadata:
+        name: "{{ item[0] }}-rabbitmq"
+        namespace: "{{ item[1] }}"
+        annotations:
+          volume.beta.kubernetes.io/storage-class: "managed-nfs-storage"
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 20Gi
+  with_nested: 
+    - "{{ project_rabbitmq_list }}"
+    - "{{ project_environment_list }}"
+  tags:
+    - initialize_k8s
+    - initialize_k8s_pvc
+    - initialize_k8s_pvc_rabbitmq

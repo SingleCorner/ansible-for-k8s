@@ -1,0 +1,36 @@
+---
+- name: Pre-task | dns record
+  raw:  echo "nameserver 114.114.114.114" > /etc/resolvconf/resolv.conf.d/base
+  tags:
+    - initialize
+
+- name: Pre-task | dns apply
+  raw: resolvconf -u
+  tags:
+    - initialize
+
+- name: Pre-task | install python2
+  raw: apt-get -y install python-simplejson
+  tags:
+    - initialize
+
+- import_tasks: core.yml
+
+- import_tasks: hosts.yml
+
+- import_tasks: pkg.yml
+
+- import_tasks: ntp.yml
+
+- import_tasks: users.yml
+
+- import_tasks: docker.yml
+
+- name: add timestamps to bash history
+  lineinfile:
+     dest=/etc/bash.bashrc
+     line="HISTTIMEFORMAT=\"%d/%m/%y %T \""
+     state=present
+  tags:
+    - initialize
+    - initialize_timestamps

@@ -1,0 +1,35 @@
+[clusterA]
+cluster-A   ansible_connection=local
+
+[clusterB]
+cluster-B   ansible_connection=local
+
+[rancher]
+rancher-1     ansible_ssh_host=192.168.0.1
+
+[kubernetes]
+k8s-1         ansible_ssh_host=192.168.0.100
+k8s-2         ansible_ssh_host=192.168.0.101
+
+[local:children]
+clusterA
+clusterB
+
+[all:children]
+rancher
+kubernetes
+openvpn
+
+[all:vars]
+ansible_ssh_user=root
+nfs_server=192.168.0.100
+nfs_server_path=/data/nfs
+
+[clusterA:vars]
+kubeconfig=$HOME/.kube/clusterA.config
+
+[clusterB:vars]
+kubeconfig=$HOME/.kube/clusterB.config
+
+[kubernetes:vars]
+role=kubernetes

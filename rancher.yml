@@ -1,0 +1,5 @@
+---
+- hosts: rancher
+  gather_facts: no 
+  roles:
+    - common

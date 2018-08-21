@@ -1,0 +1,70 @@
+apiVersion: apps/v1beta2
+kind: StatefulSet
+metadata:
+  name: "{{ item[0] }}-redis-master"
+  namespace: "{{ item[1] }}"
+  labels:
+    app: "{{ item[0] }}-redis-master"
+spec:
+  selector:
+    matchLabels:
+      app: "{{ item[0] }}-redis-master"
+  serviceName: "{{ item[0] }}-redis-master"
+  template:
+    metadata:
+      labels:
+        app: "{{ item[0] }}-redis-master"
+    spec:
+      securityContext:
+        fsGroup: 1001
+        runAsUser: 1001
+      serviceAccountName: "default"
+      containers:
+      - name: "{{ item[1] }}-{{ item[0] }}-redis-master"
+        image: "docker.io/bitnami/redis:4.0.10-debian-9"
+        imagePullPolicy: "IfNotPresent"
+        env:
+        - name: REDIS_REPLICATION_MODE
+          value: master
+        - name: REDIS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: "{{ item[0] }}"
+              key: redis-password
+        - name: REDIS_DISABLE_COMMANDS
+          value: FLUSHDB,FLUSHALL
+        ports:
+        - name: redis
+          containerPort: 6379
+        livenessProbe:
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          successThreshold: 1
+          failureThreshold: 5
+          exec:
+            command:
+            - redis-cli
+            - ping
+        readinessProbe:
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          timeoutSeconds: 1
+          successThreshold: 1
+          failureThreshold: 5
+          exec:
+            command:
+            - redis-cli
+            - ping
+        resources:
+          null         
+        volumeMounts:
+        - name: redis-data
+          mountPath: /bitnami/redis/data
+          subPath: 
+      volumes:
+      - name: "redis-data"
+        persistentVolumeClaim:
+          claimName: "{{ item[0] }}-redis"
+  updateStrategy:
+    type: OnDelete

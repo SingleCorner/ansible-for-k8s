@@ -1,0 +1,49 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: "{{ project }}-migrate"
+  namespace: "{{ namespace }}"
+spec:
+  template:
+    metadata:
+      name: "{{ project }}-migrate"
+    spec:
+      containers:
+      - name: "{{ namespace }}-{{ project }}-migrate"
+        env:
+        - name: SELF_DB_HOST
+          value: "{{ project }}-postgresql"
+        - name: SELF_DB_NAME
+          value: "{{ project }}"
+        - name: SELF_DB_USER
+          value: "iflyos"
+        - name: SELF_DB_PASS
+          valueFrom:
+            secretKeyRef:
+              name: "{{ project }}"
+              key: postgresql-password
+        - name: SELF_REDIS_HOST
+          value: "{{ project }}-redis-master"
+        - name: SELF_REDIS_PASS
+          valueFrom:
+            secretKeyRef:
+              name: "{{ project }}"
+              key: redis-password
+        - name: SELF_REDIS_URI
+          value: "redis://:$(SELF_REDIS_PASS)@$(SELF_REDIS_HOST)"
+        - name: DB_HOSTNAME
+          value: "$(SELF_DB_HOST)"
+        - name: DB_USERNAME
+          value: "$(SELF_DB_USER)"
+        - name: DB_PASSWORD
+          value: "$(SELF_DB_PASS)"
+        - name: DB_NAME
+          value: "$(SELF_DB_NAME)"
+        - name: DB_POOL_SIZE
+          value: "20"
+        - name: REDIS_HOST
+          value: "$(SELF_REDIS_URI)"
+        - name: REDIS_URL
+          value: "$(SELF_REDIS_URI)"
+        image: "{{ registry }}/migrate:{{ version }}"
+      restartPolicy: Never

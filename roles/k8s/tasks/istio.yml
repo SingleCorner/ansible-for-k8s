@@ -1,0 +1,28 @@
+---
+- name: K8S | istio | namespace
+  k8s:
+    kubeconfig: "{{ kubeconfig }}"
+    state: present
+    api_version: v1
+    kind: namespace
+    name: istio-system
+  tags:
+    - initialize_istio
+
+# - name: K8S | istio | install
+#   k8s:
+#     kubeconfig: "{{ kubeconfig }}"
+#     state: present
+#     definition: "{{ lookup('file', 'istio.yml') | from_yaml }}"
+#   tags:
+#     - initialize_istio
+
+- name: K8S | istio | install
+  shell: kubectl --kubeconfig="{{ kubeconfig }}" create -f roles/k8s/files/istio.yml
+  tags:
+    - initialize_istio
+
+- name: K8S | istio | delete
+  shell: kubectl --kubeconfig="{{ kubeconfig }}" delete -f roles/k8s/files/istio.yml
+  tags:
+    istio_delete

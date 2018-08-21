@@ -1,0 +1,20 @@
+---
+- name: installing ntpd | ubuntu
+  apt:
+    name: "{{ item }}" 
+    state: latest
+  with_items:
+    - ntp
+    - ntpdate
+  tags:
+    - initialize
+    - initialize_ntp
+
+- name: ensure Shanghai time
+  file: 
+    src: /usr/share/zoneinfo/Asia/Shanghai
+    dest: /etc/localtime
+    remote_src: yes
+  tags:
+    - initialize
+    - initialize_ntp

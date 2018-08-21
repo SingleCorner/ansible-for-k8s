@@ -1,0 +1,66 @@
+---
+- name: K8S | deployment | postgresql
+  k8s:
+    kubeconfig: "{{ kubeconfig }}"
+    state: present
+    definition: "{{ lookup('template', 'deployment-postgresql.yml') | from_yaml }}"
+  with_nested:
+    - "{{ project_postgresql_list }}"
+    - "{{ project_sharedb_list }}"
+  tags:
+    - initialize_k8s
+    - initialize_k8s_postgresql
+
+- name: K8S | deployment | redis-master
+  k8s:
+    kubeconfig: "{{ kubeconfig }}"
+    state: present
+    definition: "{{ lookup('template', 'deployment-redis-master.yml') | from_yaml }}"
+  with_nested:
+    - "{{ project_redis_list }}"
+    - "{{ project_sharedb_list }}"
+  tags:
+    - initialize_k8s
+    - initialize_k8s_redis
+    - initialize_k8s_redis_master
+
+- name: K8S | deployment | redis-slave
+  k8s:
+    kubeconfig: "{{ kubeconfig }}"
+    state: present
+    definition: "{{ lookup('template', 'deployment-redis-slave.yml') | from_yaml }}"
+  with_nested:
+    - "{{ project_redis_list }}"
+    - "{{ project_sharedb_list }}"
+  tags:
+    - initialize_k8s
+    - initialize_k8s_redis
+    - initialize_k8s_redis_slave
+
+- name: K8S | deployment | rabbitmq
+  k8s:
+    kubeconfig: "{{ kubeconfig }}"
+    state: present
+    definition: "{{ lookup('template', 'deployment-rabbitmq.yml') | from_yaml }}"
+  with_nested:
+    - "{{ project_rabbitmq_list }}"
+    - "{{ project_sharedb_list }}"
+  tags:
+    - initialize_k8s
+    - initialize_k8s_rabbitmq
+
+- name: K8S | deployment | iflyos
+  k8s:
+    kubeconfig: "{{ kubeconfig }}"
+    state: present
+    definition: "{{ lookup('template', '{{ project_type }}/{{ project }}.yml') | from_yaml }}"
+  tags:
+    - k8s_deployment_update
+
+- name: K8S | migration | iflyos
+  k8s:
+    kubeconfig: "{{ kubeconfig }}"
+    state: present
+    definition: "{{ lookup('template', 'job-migrate.yml') | from_yaml }}"
+  tags:
+    - k8s_deployment_migrate

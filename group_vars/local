@@ -1,0 +1,35 @@
+---
+project_environment_list:
+  - integration
+  - staging
+  - production
+
+project_sharedb_list:
+  - integration
+  - staging
+  - production
+
+project_type_list:
+  - api
+  - web
+  - postgresql
+  - redis
+
+project_api_list:
+  - serviceA
+  - serviceB
+  - serviceC
+
+project_web_list:
+  - serviceA
+
+project_postgresql_list:
+  - serviceA
+  - serviceC
+
+project_redis_list:
+  - serviceB
+  - serviceC
+
+project_rabbitmq_list:
+  - public

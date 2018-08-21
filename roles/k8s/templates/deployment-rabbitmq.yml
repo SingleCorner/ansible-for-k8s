@@ -1,0 +1,117 @@
+apiVersion: apps/v1beta2
+kind: StatefulSet
+metadata:
+  name: "{{ item[0] }}-rabbitmq"
+  namespace: "{{ item[1] }}"
+  labels:
+    app: "{{ item[0] }}-rabbitmq"
+spec:
+  serviceName: "{{ item[0] }}-rabbitmq"
+  replicas: 1
+  selector:
+    matchLabels:
+      app: "{{ item[0] }}-rabbitmq"
+  template:
+    metadata:
+      labels:
+        app: "{{ item[0] }}-rabbitmq"
+    spec:
+      terminationGracePeriodSeconds: 10
+      securityContext:
+        fsGroup: 1001
+        runAsUser: 1001
+      containers:
+      - name: "{{ item[1] }}-{{ item[0] }}-rabbitmq"
+        image: "docker.io/bitnami/rabbitmq:3.7.7-debian-9"
+        imagePullPolicy: "IfNotPresent"
+        env:
+          - name: MY_POD_IP
+            valueFrom:
+              fieldRef:
+                fieldPath: status.podIP
+          - name: RABBITMQ_USE_LONGNAME
+            value: "true"
+          - name: RABBITMQ_NODENAME
+            value: "rabbit@$(MY_POD_IP)"
+          - name: K8S_SERVICE_NAME
+            value: "{{ item[0] }}-rabbitmq"
+          - name: RABBITMQ_ERL_COOKIE
+            valueFrom:
+              secretKeyRef:
+                name: "{{ item[0] }}"
+                key: rabbitmq-cookie
+          - name: RABBITMQ_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: "{{ item[0] }}"
+                key: rabbitmq-password
+        ports:
+          - name: epmd
+            containerPort: 4369
+          - name: amqp
+            containerPort: 5672
+          - name: dist
+            containerPort: 25672
+          - name: stats
+            containerPort: 15672
+        command:
+         - bash
+         - -ec
+         - |
+            #persist the erlang cookie in both places for server and cli tools
+            touch /opt/bitnami/rabbitmq/var/lib/rabbitmq/.erlang.cookie
+            chmod u+w /opt/bitnami/rabbitmq/var/lib/rabbitmq/.erlang.cookie
+            echo $RABBITMQ_ERL_COOKIE > /opt/bitnami/rabbitmq/var/lib/rabbitmq/.erlang.cookie
+            cp /opt/bitnami/rabbitmq/var/lib/rabbitmq/.erlang.cookie /opt/bitnami/rabbitmq/.rabbitmq/
+
+            #change permission so only the user has access to the cookie file
+            chmod 400 /opt/bitnami/rabbitmq/.rabbitmq/.erlang.cookie
+            chmod 400 /opt/bitnami/rabbitmq/var/lib/rabbitmq/.erlang.cookie
+
+            #copy the mounted configuration to both places
+            cp  /opt/bitnami/rabbitmq/conf/* /opt/bitnami/rabbitmq/etc/rabbitmq
+
+            #replace the default password that is generated
+
+            echo ${RABBITMQ_PASSWORD}
+            sed -i "s|CHANGEME|$(RABBITMQ_PASSWORD)|g" /opt/bitnami/rabbitmq/etc/rabbitmq/rabbitmq.conf
+
+            exec rabbitmq-server
+        livenessProbe:
+          exec:
+            command:
+            - rabbitmqctl
+            - status
+          initialDelaySeconds: 120
+          timeoutSeconds: 5
+          failureThreshold: 6
+        readinessProbe:
+          exec:
+            command:
+            - rabbitmqctl
+            - status
+          initialDelaySeconds: 10
+          timeoutSeconds: 3
+          periodSeconds: 5
+        resource:
+          requests:
+            memory: 1024Mi
+            cpu: 500m
+        volumeMounts:
+          - name: config-volume
+            mountPath: /opt/bitnami/rabbitmq/conf
+          - name: data
+            mountPath: /opt/bitnami/rabbitmq/var/lib/rabbitmq/
+      volumes:
+        - name: config-volume
+          configMap:
+            name: "{{ item[0] }}-rabbitmq-config"
+            items:
+            - key: rabbitmq.conf
+              path: rabbitmq.conf
+            - key: enabled_plugins
+              path: enabled_plugins
+        - name: data
+          persistentVolumeClaim:
+            claimName: "{{ item[0] }}-rabbitmq"
+ 

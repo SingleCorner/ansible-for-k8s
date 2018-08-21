@@ -1,0 +1,61 @@
+---
+- name: apt | update source
+  copy:
+    src: apt.source.list
+    dest: /etc/apt/sources.list
+  ignore_errors: yes
+  tags:
+    - initialize
+    - initialize_apt_packages
+
+- name: apt | clean
+  apt: 
+    autoclean: yes
+  tags:
+    - initialize
+    - initialize_apt_packages
+
+- name: apt | install packages
+  apt:
+    name: "{{ item }}"
+    state: latest
+    update_cache: yes
+  with_items:
+    - bash
+    - curl
+    - gawk
+    - htop
+    - iotop
+    - sysstat
+    - screen
+    - python-pip
+    - unzip
+  tags: 
+    - initialize
+    - initialize_apt_packages
+
+- name: pip | mkdir
+  file:
+    path: ~/.pip
+    state: directory
+  tags:
+    - initialize
+    - initialize_apt_packages 
+
+- name: pip | config
+  copy:
+    src: pypi
+    dest: ~/.pip/pip.conf
+  tags:
+    - initialize
+    - initialize_apt_packages 
+
+- name: pip | install docker-py
+  pip: 
+    name: "{{ item }}"
+    state: latest
+  with_items:
+    - docker
+  tags:
+    - initialize
+    - initialize_apt_packages

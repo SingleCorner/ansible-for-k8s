@@ -1,0 +1,23 @@
+---
+- name: copy new sysctl.conf
+  template:
+    src: sysctl 
+    dest: /etc/sysctl.conf
+  tags:
+    - initialize
+    - initialize_core
+
+- name: apply sysctl settings
+  shell: sysctl -p
+  ignore_errors: true
+  tags:
+    - initialize
+    - initialize_core
+
+- name: copy new limit.conf
+  template:
+    src: limits 
+    dest: /etc/security/limits.conf
+  tags:
+    - initialize
+    - initialize_core

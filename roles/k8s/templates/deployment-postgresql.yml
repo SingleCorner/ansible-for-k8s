@@ -1,0 +1,76 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: "{{ item[0] }}-postgresql"
+  namespace: "{{ item[1] }}"
+  labels:
+    app: "{{ item[0] }}-postgresql"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: "{{ item[0] }}-postgresql"
+  template:
+    metadata:
+      labels:
+        app: "{{ item[0] }}-postgresql"
+    spec:
+      containers:
+      - name: "{{ item[1] }}-{{ item[0] }}-postgresql"
+        image: "postgres:9.6.2"
+        imagePullPolicy: "IfNotPresent"
+        args:
+        env:
+        - name: POSTGRES_USER
+          value: "postgres"
+        - name: PGUSER
+          value: "postgres"
+        - name: POSTGRES_DB
+          value: "{{ item[0] }}"
+        - name: POSTGRES_INITDB_ARGS
+          value: ""
+        - name: PGDATA
+          value: /var/lib/postgresql/data/pgdata
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: "{{ item[0] }}"
+              key: postgresql-password
+        - name: POD_IP
+          valueFrom: { fieldRef: { fieldPath: status.podIP } }
+        ports:
+        - name: postgresql
+          containerPort: 5432
+        livenessProbe:
+          exec:
+            command:
+            - sh
+            - -c
+            - exec pg_isready --host $POD_IP
+          initialDelaySeconds: 600
+          timeoutSeconds: 5
+          failureThreshold: 6
+        readinessProbe:
+          exec:
+            command:
+            - sh
+            - -c
+            - exec pg_isready --host $POD_IP
+          initialDelaySeconds: 5
+          timeoutSeconds: 3
+          periodSeconds: 5
+        resources:
+          requests:
+            cpu: 200m
+            memory: 1024Mi
+          limits:
+            cpu: 1000m
+            memory: 2048Mi
+        volumeMounts:
+        - name: data
+          mountPath: /var/lib/postgresql/data/pgdata
+          subPath: postgresql-db
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: "{{ item[0] }}-postgresql"

@@ -1,0 +1,16 @@
+---
+- import_tasks: namespace.yml
+
+- import_tasks: storage.yml
+
+- import_tasks: istio.yml
+
+- import_tasks: pvc.yml
+
+- import_tasks: secret.yml
+
+- import_tasks: configmap.yml
+
+- import_tasks: service.yml
+
+- import_tasks: deployment.yml
